@@ -1,0 +1,5 @@
+{
+  "name": "pagamentos",
+  "version": "0.0.1",
+  "description": "SDK unificado para pagamentos no Brasil. Uma API, múltiplos provedores."
+}
