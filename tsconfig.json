@@ -13,6 +13,11 @@
     "noImplicitOverride": true,
     "declaration": true,
     "noEmit": true,
-    "module": "preserve"
+    "module": "preserve",
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
   }
 }

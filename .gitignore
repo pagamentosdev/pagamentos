@@ -1,2 +1,8 @@
 # deps
 node_modules
+
+# cloned repositories
+.context
+
+# workspace settings
+*.code-workspace
