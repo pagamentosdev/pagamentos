@@ -59,6 +59,7 @@
     "**/node_modules": true,
     "**/dist": true,
     "**/.vscode": true,
-    "**/.context": true
+    "**/.context": true,
+    "**/.attest": true
   }
 }

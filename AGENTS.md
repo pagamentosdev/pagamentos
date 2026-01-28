@@ -6,6 +6,7 @@ pagamentos.dev is a unified SDK for payments in Brazil.
 
 - `bun run check`: Check lint issues.
 - `bun run fix`: Fix (auto-fixable) lint issues.
+- `bun run test`: Run the test suite.
 - `bun run ./clone-repos`: Clone repos for `.context` folder
 
 ## .context
