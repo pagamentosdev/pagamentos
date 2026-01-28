@@ -10,6 +10,12 @@ pagamentos.dev is a unified SDK for payments in Brazil.
 
 ## .context
 
-There's a folder in the root of the project named `.context`. This folder has
-the source code of some libraries that might help with the development of the
-current task.
+The `/.context` directory contains the source code for auxiliary libraries that
+serve as a reference or foundation for development. Consult these
+implementations to ensure consistency with the existing ecosystem.
+
+## internal
+
+Please refer to the documentation in the `/internal` folder before making
+architectural decisions. The DESIGN.md file is especially important, as it
+outlines the core API design and structural requirements for the SDK.
