@@ -19,3 +19,6 @@ implementations to ensure consistency with the existing ecosystem.
 Please refer to the documentation in the `/internal` folder before making
 architectural decisions. The DESIGN.md file is especially important, as it
 outlines the core API design and structural requirements for the SDK.
+
+After finalizing changes in the internal design, remember to update this
+document to reflect the latest architecture and design principles.
