@@ -6,6 +6,9 @@
   },
   "linter": {
     "rules": {
+      "performance": {
+        "noBarrelFile": "off"
+      },
       "style": {
         "useConsistentTypeDefinitions": {
           "fix": "safe",

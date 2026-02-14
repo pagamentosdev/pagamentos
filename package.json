@@ -27,14 +27,14 @@
     "pagamentos",
     "brasil"
   ],
-  "homepage": "https://github.com/landuci/pagamentos",
+  "homepage": "https://github.com/pagamentosdev/pagamentos",
   "bugs": {
-    "url": "https://github.com/landuci/pagamentos/issues"
+    "url": "https://github.com/pagamentosdev/pagamentos/issues"
   },
   "author": "Matheus Landuci <matheuslanduci@gmail.com> (https://landuci.com)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/landuci/pagamentos.git"
+    "url": "git+https://github.com/pagamentosdev/pagamentos.git"
   }
 }
