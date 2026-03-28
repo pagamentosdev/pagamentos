@@ -1,4 +1,4 @@
-import { FetchHttpClient } from '@effect/platform'
+import { FetchHttpClient, type HttpClient } from '@effect/platform'
 import { Effect, Redacted } from 'effect'
 import {
   checkoutsCreate,
@@ -231,7 +231,7 @@ const wrapAsyncOperation = <Operation>(
       runtime: RuntimeConfig
     ) => (
       ...args: readonly unknown[]
-    ) => Effect.Effect<unknown, unknown, unknown>
+    ) => Effect.Effect<unknown, unknown, HttpClient.HttpClient>
   }
 
   const effectOperation = operationRuntime.operation(runtimeConfig)
