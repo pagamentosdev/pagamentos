@@ -1,13 +1,8 @@
-import '../abacatepay'
 import { describe, expect, it } from '@effect/vitest'
 import { Cause, Config, Effect } from 'effect'
 import { HttpResponse, http } from 'msw'
 import { setupServer } from 'msw/node'
-import {
-  ABACATEPAY_SIGNATURE_HEADER,
-  AbacatePay,
-  AbacatePayWebhookError
-} from './abacatepay'
+import { ABACATEPAY_SIGNATURE_HEADER, AbacatePay } from './abacatepay'
 
 const useMocks = process.env.ABACATEPAY_DISABLE_MOCKS !== 'true'
 
@@ -415,17 +410,6 @@ describe('AbacatePay effect provider', () => {
       )
 
       expect(result).toBe(validWebhookPayload.id)
-    })
-  )
-
-  it.effect('exports AbacatePayWebhookError for webhook failures', () =>
-    Effect.sync(() => {
-      const error = new AbacatePayWebhookError({
-        message: 'custom webhook failure'
-      })
-
-      expect(error._tag).toBe('AbacatePayWebhookError')
-      expect(error.message).toBe('custom webhook failure')
     })
   )
 

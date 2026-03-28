@@ -42,7 +42,9 @@ import {
   verifyWebhookSecret
 } from './webhooks'
 
-export class AbacatePayError extends Data.TaggedError('AbacatePayError')<{
+export class AbacatePayError extends Data.TaggedError(
+  '@pagamentosdev/abacatepay/v2/AbacatePayError'
+)<{
   readonly message: string
   readonly status?: number
   readonly cause?: unknown
@@ -167,10 +169,9 @@ const makeService = (config: AbacatePayLayerConfig): AbacatePayService => {
   }
 }
 
-export class AbacatePay extends Context.Tag('@pagamentosdev/abacatepay/v2')<
-  AbacatePay,
-  AbacatePayService
->() {
+export class AbacatePay extends Context.Tag(
+  '@pagamentosdev/abacatepay/v2/AbacatePay'
+)<AbacatePay, AbacatePayService>() {
   static layerConfig(config: Config.Config.Wrap<AbacatePayLayerConfig>) {
     return Layer.effect(
       AbacatePay,

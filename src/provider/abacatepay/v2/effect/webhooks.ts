@@ -1,7 +1,7 @@
 import { Data, Effect, Schema } from 'effect'
 
 export class AbacatePayWebhookError extends Data.TaggedError(
-  'AbacatePayWebhookError'
+  '@pagamentosdev/abacatepay/v2/AbacatePayWebhookError'
 )<{
   readonly message: string
   readonly cause?: unknown
@@ -90,11 +90,9 @@ export const verifyAndDecodeWebhook = ({
     )
 
     if (!isValid) {
-      return yield* Effect.fail(
-        new AbacatePayWebhookError({
-          message: 'Invalid AbacatePay webhook signature'
-        })
-      )
+      return yield* new AbacatePayWebhookError({
+        message: 'Invalid AbacatePay webhook signature'
+      })
     }
 
     const json = yield* Effect.try({
