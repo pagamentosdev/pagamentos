@@ -34,6 +34,13 @@ import {
   subscriptionsCreate,
   subscriptionsList
 } from './operations'
+import type { AbacatePayWebhookPayload } from './webhooks'
+import {
+  ABACATEPAY_SIGNATURE_HEADER,
+  AbacatePayWebhookError,
+  verifyAndDecodeWebhook,
+  verifyWebhookSecret
+} from './webhooks'
 
 export class AbacatePayError extends Data.TaggedError('AbacatePayError')<{
   readonly message: string
@@ -53,6 +60,54 @@ const makeService = (config: AbacatePayLayerConfig): AbacatePayService => {
     apiKey: config.apiKey,
     baseUrl: config.baseUrl ?? 'https://api.abacatepay.com/v2'
   }
+
+  const handleWebhook = <A, E, R>(
+    request: Request,
+    onEvent: (event: AbacatePayWebhookPayload) => Effect.Effect<A, E, R>
+  ) =>
+    Effect.gen(function* () {
+      if (!config.webhooks) {
+        return yield* new AbacatePayWebhookError({
+          message:
+            'Webhooks are not configured. Provide `webhooks.publicHmacKey` in AbacatePay.layerConfig.'
+        })
+      }
+
+      const signature = request.headers.get(ABACATEPAY_SIGNATURE_HEADER)
+      if (!signature) {
+        return yield* new AbacatePayWebhookError({
+          message: `Missing webhook signature header: ${ABACATEPAY_SIGNATURE_HEADER}`
+        })
+      }
+
+      if (config.webhooks.secret) {
+        const url = new URL(request.url)
+        const queryParam = config.webhooks.secretQueryParam ?? 'webhookSecret'
+        const secretFromQuery = url.searchParams.get(queryParam)
+
+        if (!secretFromQuery) {
+          return yield* new AbacatePayWebhookError({
+            message: `Missing webhook secret query param: ${queryParam}`
+          })
+        }
+
+        if (!verifyWebhookSecret(secretFromQuery, config.webhooks.secret)) {
+          return yield* new AbacatePayWebhookError({
+            message: 'Invalid AbacatePay webhook secret'
+          })
+        }
+      }
+
+      const rawBody = yield* Effect.promise(() => request.text())
+
+      const payload = yield* verifyAndDecodeWebhook({
+        rawBody,
+        signatureFromHeader: signature,
+        publicHmacKey: config.webhooks.publicHmacKey
+      })
+
+      return yield* onEvent(payload)
+    })
 
   return {
     checkouts: {
@@ -105,6 +160,9 @@ const makeService = (config: AbacatePayLayerConfig): AbacatePayService => {
       create: withHttpClient(pixCreate.operation(runtimeConfig)),
       get: withHttpClient(pixGet.operation(runtimeConfig)),
       list: withHttpClient(pixList.operation(runtimeConfig))
+    },
+    webhooks: {
+      handle: handleWebhook
     }
   }
 }
@@ -120,6 +178,17 @@ export class AbacatePay extends Context.Tag('@pagamentosdev/abacatepay/v2')<
     )
   }
 }
+
+export {
+  ABACATEPAY_SIGNATURE_HEADER,
+  AbacatePayWebhookError,
+  abacatePayWebhookEventSchema,
+  abacatePayWebhookSchema,
+  decodeWebhookPayload,
+  verifyAndDecodeWebhook,
+  verifyWebhookSecret,
+  verifyWebhookSignature
+} from './webhooks'
 
 type AbacatePayService = {
   checkouts: {
@@ -171,9 +240,20 @@ type AbacatePayService = {
     get: typeof pixGet.$inferOperation
     list: typeof pixList.$inferOperation
   }
+  webhooks: {
+    handle: <A, E, R>(
+      request: Request,
+      onEvent: (event: AbacatePayWebhookPayload) => Effect.Effect<A, E, R>
+    ) => Effect.Effect<A, AbacatePayWebhookError | E, R>
+  }
 }
 
 type AbacatePayLayerConfig = {
   apiKey: OperationRuntimeConfig['apiKey']
   baseUrl?: string
+  webhooks?: {
+    publicHmacKey: string
+    secret?: string
+    secretQueryParam?: string
+  }
 }
