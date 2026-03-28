@@ -3,7 +3,7 @@ import { $ } from 'bun'
 const repositories = [
   {
     repo: 'https://github.com/Effect-TS/effect.git',
-    tag: 'effect@3.19.15',
+    tag: 'effect@3.21.0',
     path: '.context/effect'
   },
   {
