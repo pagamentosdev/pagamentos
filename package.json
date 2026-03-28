@@ -20,6 +20,7 @@
     "vitest": "^4.1.2"
   },
   "dependencies": {
+    "@effect/platform": "^0.96.0",
     "effect": "^3.21.0"
   },
   "keywords": [
