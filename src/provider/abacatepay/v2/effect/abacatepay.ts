@@ -1,5 +1,7 @@
+import { FetchHttpClient } from '@effect/platform'
 import { Config, Context, Data, Effect, Layer } from 'effect'
-import type {
+import type { OperationRuntimeConfig } from '#internal/operation'
+import {
   checkoutsCreate,
   checkoutsGet,
   checkoutsList,
@@ -29,12 +31,8 @@ import type {
   productsDelete,
   productsGet,
   productsList,
-  storeGet,
   subscriptionsCreate,
-  subscriptionsList,
-  trustMrrGet,
-  trustMrrList,
-  trustMrrMrr
+  subscriptionsList
 } from './operations'
 
 export class AbacatePayError extends Data.TaggedError('AbacatePayError')<{
@@ -42,6 +40,86 @@ export class AbacatePayError extends Data.TaggedError('AbacatePayError')<{
   readonly status?: number
   readonly cause?: unknown
 }> {}
+
+const withHttpClient =
+  <Args extends readonly unknown[], A, E>(
+    fn: (...args: Args) => Effect.Effect<A, E>
+  ) =>
+  (...args: Args): Effect.Effect<A, E> =>
+    fn(...args).pipe(Effect.provide(FetchHttpClient.layer))
+
+const makeService = (config: AbacatePayLayerConfig): AbacatePayService => {
+  const runtimeConfig: OperationRuntimeConfig = {
+    apiKey: config.apiKey,
+    baseUrl: config.baseUrl ?? 'https://api.abacatepay.com/v2'
+  }
+
+  return {
+    checkouts: {
+      create: withHttpClient(checkoutsCreate.operation(runtimeConfig)),
+      list: withHttpClient(checkoutsList.operation(runtimeConfig)),
+      get: withHttpClient(checkoutsGet.operation(runtimeConfig))
+    },
+    paymentLinks: {
+      create: withHttpClient(paymentLinksCreate.operation(runtimeConfig)),
+      list: withHttpClient(paymentLinksList.operation(runtimeConfig)),
+      get: withHttpClient(paymentLinksGet.operation(runtimeConfig))
+    },
+    customers: {
+      create: withHttpClient(customersCreate.operation(runtimeConfig)),
+      list: withHttpClient(customersList.operation(runtimeConfig)),
+      get: withHttpClient(customersGet.operation(runtimeConfig)),
+      delete: withHttpClient(customersDelete.operation(runtimeConfig))
+    },
+    pixQrcode: {
+      create: withHttpClient(pixQrcodeCreate.operation(runtimeConfig)),
+      list: withHttpClient(pixQrcodeList.operation(runtimeConfig)),
+      simulatePayment: withHttpClient(
+        pixQrcodeSimulatePayment.operation(runtimeConfig)
+      ),
+      check: withHttpClient(pixQrcodeCheck.operation(runtimeConfig))
+    },
+    coupons: {
+      create: withHttpClient(couponsCreate.operation(runtimeConfig)),
+      list: withHttpClient(couponsList.operation(runtimeConfig)),
+      get: withHttpClient(couponsGet.operation(runtimeConfig)),
+      delete: withHttpClient(couponsDelete.operation(runtimeConfig)),
+      toggle: withHttpClient(couponsToggle.operation(runtimeConfig))
+    },
+    products: {
+      create: withHttpClient(productsCreate.operation(runtimeConfig)),
+      list: withHttpClient(productsList.operation(runtimeConfig)),
+      get: withHttpClient(productsGet.operation(runtimeConfig)),
+      delete: withHttpClient(productsDelete.operation(runtimeConfig))
+    },
+    subscriptions: {
+      create: withHttpClient(subscriptionsCreate.operation(runtimeConfig)),
+      list: withHttpClient(subscriptionsList.operation(runtimeConfig))
+    },
+    payouts: {
+      create: withHttpClient(payoutsCreate.operation(runtimeConfig)),
+      get: withHttpClient(payoutsGet.operation(runtimeConfig)),
+      list: withHttpClient(payoutsList.operation(runtimeConfig))
+    },
+    pix: {
+      create: withHttpClient(pixCreate.operation(runtimeConfig)),
+      get: withHttpClient(pixGet.operation(runtimeConfig)),
+      list: withHttpClient(pixList.operation(runtimeConfig))
+    }
+  }
+}
+
+export class AbacatePay extends Context.Tag('@pagamentosdev/abacatepay/v2')<
+  AbacatePay,
+  AbacatePayService
+>() {
+  static layerConfig(config: Config.Config.Wrap<AbacatePayLayerConfig>) {
+    return Layer.effect(
+      AbacatePay,
+      Config.unwrap(config).pipe(Effect.map(makeService))
+    )
+  }
+}
 
 type AbacatePayService = {
   checkouts: {
@@ -93,138 +171,9 @@ type AbacatePayService = {
     get: typeof pixGet.$inferOperation
     list: typeof pixList.$inferOperation
   }
-  store: {
-    get: typeof storeGet.$inferOperation
-  }
-  trustMrr: {
-    mrr: typeof trustMrrMrr.$inferOperation
-    get: typeof trustMrrGet.$inferOperation
-    list: typeof trustMrrList.$inferOperation
-  }
 }
 
 type AbacatePayLayerConfig = {
-  apiKey: unknown
-  baseURL?: string
-}
-
-const notImplemented = <
-  Operation extends (
-    ...args: readonly unknown[]
-  ) => Effect.Effect<unknown, AbacatePayError>
->(
-  name: string
-): Operation =>
-  ((..._args: readonly unknown[]) =>
-    Effect.fail(
-      new AbacatePayError({
-        message: `Operation ${name} is not implemented yet`
-      })
-    )) as Operation
-
-const makeService = (_config: AbacatePayLayerConfig): AbacatePayService => ({
-  checkouts: {
-    create:
-      notImplemented<typeof checkoutsCreate.$inferOperation>(
-        'checkouts.create'
-      ),
-    list: notImplemented<typeof checkoutsList.$inferOperation>(
-      'checkouts.list'
-    ),
-    get: notImplemented<typeof checkoutsGet.$inferOperation>('checkouts.get')
-  },
-  paymentLinks: {
-    create: notImplemented<typeof paymentLinksCreate.$inferOperation>(
-      'paymentLinks.create'
-    ),
-    list: notImplemented<typeof paymentLinksList.$inferOperation>(
-      'paymentLinks.list'
-    ),
-    get: notImplemented<typeof paymentLinksGet.$inferOperation>(
-      'paymentLinks.get'
-    )
-  },
-  customers: {
-    create:
-      notImplemented<typeof customersCreate.$inferOperation>(
-        'customers.create'
-      ),
-    list: notImplemented<typeof customersList.$inferOperation>(
-      'customers.list'
-    ),
-    get: notImplemented<typeof customersGet.$inferOperation>('customers.get'),
-    delete:
-      notImplemented<typeof customersDelete.$inferOperation>('customers.delete')
-  },
-  pixQrcode: {
-    create:
-      notImplemented<typeof pixQrcodeCreate.$inferOperation>(
-        'pixQrcode.create'
-      ),
-    list: notImplemented<typeof pixQrcodeList.$inferOperation>(
-      'pixQrcode.list'
-    ),
-    simulatePayment: notImplemented<
-      typeof pixQrcodeSimulatePayment.$inferOperation
-    >('pixQrcode.simulatePayment'),
-    check:
-      notImplemented<typeof pixQrcodeCheck.$inferOperation>('pixQrcode.check')
-  },
-  coupons: {
-    create:
-      notImplemented<typeof couponsCreate.$inferOperation>('coupons.create'),
-    list: notImplemented<typeof couponsList.$inferOperation>('coupons.list'),
-    get: notImplemented<typeof couponsGet.$inferOperation>('coupons.get'),
-    delete:
-      notImplemented<typeof couponsDelete.$inferOperation>('coupons.delete'),
-    toggle:
-      notImplemented<typeof couponsToggle.$inferOperation>('coupons.toggle')
-  },
-  products: {
-    create:
-      notImplemented<typeof productsCreate.$inferOperation>('products.create'),
-    list: notImplemented<typeof productsList.$inferOperation>('products.list'),
-    get: notImplemented<typeof productsGet.$inferOperation>('products.get'),
-    delete:
-      notImplemented<typeof productsDelete.$inferOperation>('products.delete')
-  },
-  subscriptions: {
-    create: notImplemented<typeof subscriptionsCreate.$inferOperation>(
-      'subscriptions.create'
-    ),
-    list: notImplemented<typeof subscriptionsList.$inferOperation>(
-      'subscriptions.list'
-    )
-  },
-  payouts: {
-    create:
-      notImplemented<typeof payoutsCreate.$inferOperation>('payouts.create'),
-    get: notImplemented<typeof payoutsGet.$inferOperation>('payouts.get'),
-    list: notImplemented<typeof payoutsList.$inferOperation>('payouts.list')
-  },
-  pix: {
-    create: notImplemented<typeof pixCreate.$inferOperation>('pix.create'),
-    get: notImplemented<typeof pixGet.$inferOperation>('pix.get'),
-    list: notImplemented<typeof pixList.$inferOperation>('pix.list')
-  },
-  store: {
-    get: notImplemented<typeof storeGet.$inferOperation>('store.get')
-  },
-  trustMrr: {
-    mrr: notImplemented<typeof trustMrrMrr.$inferOperation>('trustMrr.mrr'),
-    get: notImplemented<typeof trustMrrGet.$inferOperation>('trustMrr.get'),
-    list: notImplemented<typeof trustMrrList.$inferOperation>('trustMrr.list')
-  }
-})
-
-export class AbacatePay extends Context.Tag('@pagamentosdev/abacatepay/v2')<
-  AbacatePay,
-  AbacatePayService
->() {
-  static layerConfig(config: Config.Config.Wrap<AbacatePayLayerConfig>) {
-    return Layer.effect(
-      AbacatePay,
-      Config.unwrap(config).pipe(Effect.map(makeService))
-    )
-  }
+  apiKey: OperationRuntimeConfig['apiKey']
+  baseUrl?: string
 }
